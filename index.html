@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- SEO & Metadata -->
+    <title>Shaheen Wings Traveler | Premium Global Flight & Hotel Booking</title>
+    <meta name="description" content="Book cheap flights, luxury hotels, and car rentals with Shaheen Wings Traveler.">
+    <meta name="theme-color" content="#C8102E">
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Libre+Barcode+39+Text&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PDF Generation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        shaheenRed: '#C8102E',
+                        shaheenGreen: '#1E7A1E',
+                        shaheenDark: '#111827',
+                        shaheenGray: '#F3F4F6',
+                        accentGold: '#FFD700',
+                        // Bank Colors
+                        meezan: '#4d0a69',
+                        alfalah: '#004c97',
+                        khushhali: '#f7941d',
+                        ubl: '#002855',
+                        mcb: '#006B3F',
+                        faysal: '#512D6D'
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        barcode: ['"Libre Barcode 39 Text"', 'cursive'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                        'bounce-short': 'bounce 1s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #C8102E; border-radius: 4px; }
+        .glass-header { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .hero-bg { background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'); background-size: cover; background-position: center; }
+        .date-input::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(0.5); }
+        .autocomplete-items { position: absolute; border: 1px solid #e5e7eb; border-top: none; z-index: 99; top: 100%; left: 0; right: 0; background-color: white; border-radius: 0 0 0.75rem 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 250px; overflow-y: auto; }
+        .autocomplete-items div { padding: 10px; cursor: pointer; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; }
+        .autocomplete-items div:hover { background-color: #f9fafb; border-left: 4px solid #C8102E; }
+        .tab-active { background-color: #FEF2F2; color: #C8102E; border-bottom: 2px solid #C8102E; }
+        .tab-inactive { color: #6B7280; border-bottom: 2px solid transparent; }
+        .tab-inactive:hover { color: #1E7A1E; background-color: #F0FDF4; }
+        .bank-radio:checked + div { border-color: #C8102E; background-color: #FEF2F2; box-shadow: 0 4px 6px -1px rgba(200, 16, 46, 0.1); transform: scale(1.02); }
+        .status-badge-Pending { background-color: #FEF3C7; color: #D97706; }
+        .status-badge-Approved { background-color: #D1FAE5; color: #059669; }
+        .status-badge-Cancelled { background-color: #FEE2E2; color: #DC2626; }
+        .stamp { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 4rem; font-weight: 800; text-transform: uppercase; border: 5px solid; padding: 10px 20px; border-radius: 10px; opacity: 0.2; pointer-events: none; z-index: 0; }
+        .stamp-Pending { color: #D97706; border-color: #D97706; }
+        .stamp-Approved { color: #059669; border-color: #059669; }
+        .stamp-Cancelled { color: #DC2626; border-color: #DC2626; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased font-sans">
+
+    <!-- ================= HEADER ================= -->
+    <header class="fixed w-full z-50 glass-header shadow-sm transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="app.navigate('home')">
+                    <i class="fa-solid fa-feather-pointed text-4xl text-transparent bg-clip-text bg-gradient-to-r from-shaheenRed to-shaheenGreen mr-2"></i>
+                    <div class="flex flex-col">
+                        <span class="text-2xl font-bold tracking-tight text-gray-900 leading-none">SHAHEEN <span class="text-shaheenRed">WINGS</span></span>
+                        <span class="text-[10px] font-bold tracking-[0.2em] text-shaheenGreen uppercase">Traveler</span>
+                    </div>
+                </div>
+                <nav class="hidden lg:flex space-x-8">
+                    <a href="#" onclick="app.switchTab('flights'); app.navigate('home')" class="text-sm font-medium text-gray-700 hover:text-shaheenRed transition">Flights</a>
+                    <a href="#" onclick="app.switchTab('hotels'); app.navigate('home')" class="text-sm font-medium text-gray-700 hover:text-shaheenRed transition">Hotels</a>
+                    <a href="#" onclick="app.switchTab('cars'); app.navigate('home')" class="text-sm font-medium text-gray-700 hover:text-shaheenRed transition">Cars</a>
+                    <a href="#" onclick="app.switchTab('tours'); app.navigate('home')" class="text-sm font-medium text-gray-700 hover:text-shaheenRed transition">Tours</a>
+                </nav>
+                <div class="flex items-center space-x-4" id="auth-container">
+                    <div class="hidden lg:flex items-center space-x-3">
+                        <button onclick="app.navigate('login')" class="text-sm font-semibold text-gray-600 hover:text-shaheenRed">Log In</button>
+                        <button onclick="app.navigate('signup')" class="bg-gradient-to-r from-shaheenRed to-shaheenGreen text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition duration-200">Sign Up</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= MAIN APP ================= -->
+    <main id="app-content" class="pt-20 min-h-screen">
+        
+        <!-- HOME -->
+        <section id="view-home" class="relative">
+            <div class="hero-bg h-[750px] md:h-[800px] flex items-center justify-center relative px-4">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-gray-50/90"></div>
+                <div class="relative z-10 w-full max-w-6xl animate-slide-up">
+                    <div class="text-center mb-8 text-white">
+                        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-2 drop-shadow-lg">Fly High with <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-green-400">Shaheen Wings</span></h1>
+                        <p class="text-lg md:text-xl text-gray-100 font-light opacity-90">Premium Travel Ecosystem: Flights, Hotels, Cars & Tours</p>
+                    </div>
+                    <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8">
+                        <div class="flex space-x-2 md:space-x-4 border-b border-gray-100 pb-4 mb-6 overflow-x-auto no-scrollbar">
+                            <button onclick="app.switchTab('flights')" id="tab-flights" class="tab-active flex items-center space-x-2 px-6 py-3 rounded-t-lg font-bold transition whitespace-nowrap"><i class="fa-solid fa-plane-departure"></i> <span>Flights</span></button>
+                            <button onclick="app.switchTab('hotels')" id="tab-hotels" class="tab-inactive flex items-center space-x-2 px-6 py-3 rounded-t-lg font-medium transition whitespace-nowrap"><i class="fa-solid fa-hotel"></i> <span>Hotels</span></button>
+                            <button onclick="app.switchTab('cars')" id="tab-cars" class="tab-inactive flex items-center space-x-2 px-6 py-3 rounded-t-lg font-medium transition whitespace-nowrap"><i class="fa-solid fa-car"></i> <span>Car Rental</span></button>
+                            <button onclick="app.switchTab('tours')" id="tab-tours" class="tab-inactive flex items-center space-x-2 px-6 py-3 rounded-t-lg font-medium transition whitespace-nowrap"><i class="fa-solid fa-map-location-dot"></i> <span>Tours</span></button>
+                        </div>
+
+                        <!-- FLIGHT FORM -->
+                        <form id="form-flights" onsubmit="app.searchFlights(event)">
+                            <div class="flex flex-wrap items-center justify-between mb-4 gap-4">
+                                <div class="flex space-x-4 bg-gray-50 p-1 rounded-lg">
+                                    <label class="flex items-center space-x-2 cursor-pointer px-3 py-1.5 rounded-md transition" id="lbl-round"><input type="radio" name="trip" value="round" checked onclick="app.toggleTrip('round')" class="accent-shaheenRed"> <span class="text-sm font-semibold">Round Trip</span></label>
+                                    <label class="flex items-center space-x-2 cursor-pointer px-3 py-1.5 rounded-md transition" id="lbl-one"><input type="radio" name="trip" value="one" onclick="app.toggleTrip('one')" class="accent-shaheenRed"> <span class="text-sm font-semibold">One Way</span></label>
+                                </div>
+                                <div class="relative w-full md:w-auto"><select class="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg block w-full p-2.5 font-semibold outline-none"><option>Economy</option><option>Business</option></select></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-3 relative"><label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 ml-1">From</label><div class="relative group"><i class="fa-solid fa-plane-departure absolute left-4 top-3.5 text-gray-400"></i><input type="text" id="input-origin" placeholder="City or Airport (A-Z)" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 font-semibold text-gray-800 outline-none"><div id="autocomplete-origin" class="autocomplete-items hidden"></div></div></div>
+                                <div class="md:col-span-3 relative"><label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 ml-1">To</label><div class="relative group"><i class="fa-solid fa-location-dot absolute left-4 top-3.5 text-gray-400"></i><input type="text" id="input-dest" placeholder="City or Airport (A-Z)" class="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 font-semibold text-gray-800 outline-none"><div id="autocomplete-dest" class="autocomplete-items hidden"></div></div><button type="button" onclick="app.swapLocations()" class="hidden md:block absolute -left-6 top-8 bg-white border border-gray-200 rounded-full p-1.5 shadow-md text-gray-400 hover:text-shaheenRed z-20"><i class="fa-solid fa-arrow-right-arrow-left text-xs"></i></button></div>
+                                <div class="md:col-span-2"><label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 ml-1">Departure</label><input type="date" required class="date-input w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-semibold outline-none"></div>
+                                <div class="md:col-span-2 relative"><label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 ml-1">Return</label><input type="date" id="return-date-input" class="date-input w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-semibold outline-none"><div id="one-way-overlay" class="hidden absolute inset-0 bg-gray-100/50 cursor-not-allowed z-10 flex items-center justify-center pt-6 rounded-xl"><span class="text-xs font-bold text-gray-400">No Return</span></div></div>
+                                <div class="md:col-span-2 flex items-end"><button type="submit" class="w-full h-[50px] bg-gradient-to-r from-shaheenRed to-shaheenGreen text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition flex items-center justify-center">Search</button></div>
+                            </div>
+                        </form>
+                        <!-- Other forms exist in logic (hidden) -->
+                        <form id="form-hotels" class="hidden" onsubmit="app.searchGeneric(event, 'Hotel')"><div class="grid grid-cols-12 gap-4"><div class="col-span-10"><input type="text" id="hotel-query" placeholder="Hotel Name" class="w-full border rounded-xl p-3"></div><div class="col-span-2"><button class="w-full bg-shaheenRed text-white rounded-xl p-3">Search</button></div></div></form>
+                        <form id="form-cars" class="hidden" onsubmit="app.searchGeneric(event, 'Car')"><div class="grid grid-cols-12 gap-4"><div class="col-span-10"><input type="text" id="car-query" placeholder="Car" class="w-full border rounded-xl p-3"></div><div class="col-span-2"><button class="w-full bg-shaheenRed text-white rounded-xl p-3">Search</button></div></div></form>
+                        <form id="form-tours" class="hidden" onsubmit="app.searchGeneric(event, 'Tour')"><div class="grid grid-cols-12 gap-4"><div class="col-span-10"><input type="text" id="tour-query" placeholder="Place" class="w-full border rounded-xl p-3"></div><div class="col-span-2"><button class="w-full bg-shaheenRed text-white rounded-xl p-3">Search</button></div></div></form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="max-w-7xl mx-auto px-4 py-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">Trending Destinations</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="group relative h-96 rounded-2xl overflow-hidden shadow-card cursor-pointer"><img src="https://images.unsplash.com/photo-1548013146-72479768bada?w=800" class="w-full h-full object-cover group-hover:scale-110 transition duration-700"><div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6"><h3 class="text-white text-2xl font-bold">Hunza Valley</h3><p class="text-white/80">Pakistan</p></div></div>
+                    <div class="group relative h-96 rounded-2xl overflow-hidden shadow-card cursor-pointer"><img src="https://images.unsplash.com/photo-1512453979798-5ea904ac66de?w=800" class="w-full h-full object-cover group-hover:scale-110 transition duration-700"><div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6"><h3 class="text-white text-2xl font-bold">Dubai</h3><p class="text-white/80">UAE</p></div></div>
+                    <div class="group relative h-96 rounded-2xl overflow-hidden shadow-card cursor-pointer"><img src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800" class="w-full h-full object-cover group-hover:scale-110 transition duration-700"><div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6"><h3 class="text-white text-2xl font-bold">Istanbul</h3><p class="text-white/80">Turkey</p></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESULTS -->
+        <section id="view-results" class="hidden bg-gray-50 min-h-screen pb-20">
+            <div class="bg-shaheenDark text-white pt-10 pb-16 sticky top-20 z-30 shadow-md">
+                <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+                    <div><h2 class="text-2xl font-bold flex items-center"><span id="res-origin">Search</span> <i class="fa-solid fa-arrow-right mx-3 text-sm text-gray-400"></i> <span id="res-dest">Results</span></h2><p class="text-gray-400 text-sm mt-1" id="res-count">Found 100+ Flights</p></div>
+                    <button onclick="app.navigate('home')" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm transition">Modify Search</button>
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 -mt-8 relative z-40">
+                <div class="flex flex-col lg:flex-row gap-6">
+                    <aside class="w-full lg:w-1/4">
+                        <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+                            <h3 class="font-bold text-gray-800 mb-4">Filters</h3>
+                            <label class="flex items-center space-x-2 text-sm text-gray-600 mb-2"><input type="checkbox" checked class="accent-shaheenRed"> <span>Direct Flight</span></label>
+                            <label class="flex items-center space-x-2 text-sm text-gray-600 mb-2"><input type="checkbox" checked class="accent-shaheenRed"> <span>Refundable</span></label>
+                            <div class="mt-4 pt-4 border-t"><button class="w-full bg-gray-100 text-gray-600 py-2 rounded hover:bg-gray-200 text-sm">Reset</button></div>
+                        </div>
+                    </aside>
+                    <div class="w-full lg:w-3/4" id="results-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DETAILS -->
+        <section id="view-details" class="hidden bg-gray-50 min-h-screen pt-24 pb-20"><div class="max-w-7xl mx-auto px-4 animate-fade-in" id="details-content"></div></section>
+
+        <!-- BOOKING FORM -->
+        <section id="view-booking-form" class="hidden bg-gray-50 min-h-screen pt-24 pb-20">
+            <div class="max-w-4xl mx-auto px-4 animate-slide-up">
+                <button onclick="app.backToDetails()" class="mb-6 text-gray-500 hover:text-shaheenRed"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden p-8">
+                    <h2 class="text-2xl font-bold mb-4">Guest Details</h2>
+                    <div class="bg-gray-50 p-4 rounded mb-6 border"><h3 class="font-bold" id="booking-item-title">Item</h3><p class="text-xl font-bold text-shaheenRed" id="booking-item-price">$0</p></div>
+                    <form onsubmit="app.goToPayment(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div><label class="text-sm font-bold">Full Name</label><input type="text" required class="w-full border rounded p-3" id="guest-name"></div>
+                            <div><label class="text-sm font-bold">Email</label><input type="email" required class="w-full border rounded p-3" id="guest-email"></div>
+                            <div><label class="text-sm font-bold">Phone</label><input type="tel" required class="w-full border rounded p-3" id="guest-phone"></div>
+                            <div><label class="text-sm font-bold">Passport/CNIC</label><input type="text" required class="w-full border rounded p-3" id="guest-id"></div>
+                        </div>
+                        <button type="submit" class="w-full bg-shaheenDark text-white text-lg font-bold py-4 rounded-xl hover:bg-black transition">Proceed to Payment</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAYMENT -->
+        <section id="view-payment" class="hidden bg-gray-50 min-h-screen pt-24 pb-20">
+            <div class="max-w-2xl mx-auto px-4 animate-slide-up">
+                <button onclick="app.navigate('booking-form')" class="mb-6 text-gray-500 hover:text-shaheenRed"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 p-8">
+                    <div class="flex justify-between items-center mb-6"><h2 class="text-xl font-bold">Bank Transfer</h2><i class="fa-solid fa-lock text-green-500"></i></div>
+                    
+                    <div class="grid grid-cols-1 gap-4 mb-8">
+                        <!-- Banks with Professional Styling -->
+                        <label class="cursor-pointer group"><input type="radio" name="bank" value="Meezan Bank" class="bank-radio hidden" checked onchange="app.updateAdminBank('Meezan Bank', '0101-2025-3030-40', 'Shaheen Admin')"><div class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-meezan transition"><div class="flex items-center"><div class="w-10 h-10 bg-meezan text-white rounded-full flex items-center justify-center font-bold mr-4">MB</div><div><h4 class="font-bold text-gray-800">Meezan Bank</h4></div></div><i class="fa-solid fa-circle-check text-2xl text-transparent check-icon"></i></div></label>
+                        
+                        <label class="cursor-pointer group"><input type="radio" name="bank" value="Bank Alfalah" class="bank-radio hidden" onchange="app.updateAdminBank('Bank Alfalah', '5502-0011-2233', 'Shaheen Admin')"><div class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-alfalah transition"><div class="flex items-center"><div class="w-10 h-10 bg-alfalah text-white rounded-full flex items-center justify-center font-bold mr-4">BA</div><div><h4 class="font-bold text-gray-800">Bank Alfalah</h4></div></div><i class="fa-solid fa-circle-check text-2xl text-transparent check-icon"></i></div></label>
+                        
+                        <label class="cursor-pointer group"><input type="radio" name="bank" value="UBL" class="bank-radio hidden" onchange="app.updateAdminBank('UBL', '1234-5678-9012', 'Shaheen Admin')"><div class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-ubl transition"><div class="flex items-center"><div class="w-10 h-10 bg-ubl text-white rounded-full flex items-center justify-center font-bold mr-4">UBL</div><div><h4 class="font-bold text-gray-800">United Bank Ltd</h4></div></div><i class="fa-solid fa-circle-check text-2xl text-transparent check-icon"></i></div></label>
+                        
+                        <label class="cursor-pointer group"><input type="radio" name="bank" value="MCB" class="bank-radio hidden" onchange="app.updateAdminBank('MCB', '9876-5432-1098', 'Shaheen Admin')"><div class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-mcb transition"><div class="flex items-center"><div class="w-10 h-10 bg-mcb text-white rounded-full flex items-center justify-center font-bold mr-4">MCB</div><div><h4 class="font-bold text-gray-800">MCB Bank</h4></div></div><i class="fa-solid fa-circle-check text-2xl text-transparent check-icon"></i></div></label>
+                        
+                        <label class="cursor-pointer group"><input type="radio" name="bank" value="Faysal Bank" class="bank-radio hidden" onchange="app.updateAdminBank('Faysal Bank', '1122-3344-5566', 'Shaheen Admin')"><div class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-faysal transition"><div class="flex items-center"><div class="w-10 h-10 bg-faysal text-white rounded-full flex items-center justify-center font-bold mr-4">FB</div><div><h4 class="font-bold text-gray-800">Faysal Bank</h4></div></div><i class="fa-solid fa-circle-check text-2xl text-transparent check-icon"></i></div></label>
+                    </div>
+
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8 text-center"><p class="text-xs text-gray-500 uppercase font-bold mb-2">Please Transfer Amount To:</p><h3 class="text-2xl font-bold text-shaheenRed mb-1" id="admin-acc-num">0101-2025-3030-40</h3><p class="font-medium text-gray-800" id="admin-acc-name">Title: Shaheen Admin</p><p class="text-sm text-gray-500 mt-1" id="admin-bank-label">Meezan Bank</p></div>
+
+                    <div class="bg-white p-0 rounded-xl space-y-4 mb-6">
+                        <div><label class="block text-xs font-bold text-gray-500 uppercase">Sender Account Title</label><input type="text" id="sender-name" placeholder="Your Name" class="w-full border rounded-lg p-3"></div>
+                        <div><label class="block text-xs font-bold text-gray-500 uppercase">Transaction ID</label><input type="text" id="trx-id" placeholder="e.g. 882910XXXX" class="w-full border rounded-lg p-3"></div>
+                        <div><label class="block text-xs font-bold text-gray-500 uppercase">Upload Proof (Screenshot)</label><input type="file" id="payment-proof" class="w-full border rounded-lg p-2 text-sm bg-gray-50"></div>
+                    </div>
+
+                    <button onclick="app.processPayment()" class="w-full bg-shaheenGreen text-white text-lg font-bold py-4 rounded-xl hover:bg-green-800 transition shadow-lg">Confirm Payment <span id="pay-amount" class="ml-2">$0</span></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOOKING SUCCESS (HIDDEN) -->
+        <section id="view-success" class="hidden fixed inset-0 z-[100] bg-white flex flex-col justify-center items-center p-4">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce-short"><i class="fa-solid fa-check text-4xl text-green-600"></i></div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Booking Successful!</h2>
+            <p class="text-gray-500 mb-8">Redirecting to your dashboard...</p>
+            <div class="w-full max-w-xs h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-shaheenGreen w-0 transition-all duration-[2000ms] ease-out" id="success-bar"></div></div>
+        </section>
+
+        <!-- DASHBOARD (HISTORY) -->
+        <section id="view-dashboard" class="hidden bg-gray-50 min-h-screen pt-24 pb-20">
+            <div class="max-w-7xl mx-auto px-4 animate-slide-up">
+                <div class="flex justify-between items-center mb-8"><h2 class="text-3xl font-bold text-gray-800">My Booking History</h2><button onclick="app.navigate('home')" class="text-shaheenRed hover:underline">New Booking</button></div>
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden min-h-[400px]">
+                    <div class="overflow-x-auto"><table class="w-full text-left"><thead class="bg-gray-50 text-gray-500 text-xs uppercase"><tr><th class="p-6">Service</th><th class="p-6">Route / Detail</th><th class="p-6">Date</th><th class="p-6">Status</th><th class="p-6 text-right">Action</th></tr></thead><tbody id="dashboard-list" class="divide-y divide-gray-100 text-sm"></tbody></table></div>
+                    <div id="dashboard-empty" class="hidden flex flex-col items-center justify-center py-20 text-gray-400"><i class="fa-solid fa-suitcase-rolling text-6xl mb-4"></i><p>No bookings found.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FULL TICKET MODAL -->
+        <section id="view-ticket" class="hidden bg-gray-900/90 min-h-screen fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
+            <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden relative animate-slide-up my-8" id="ticket-node">
+                <div class="bg-shaheenRed h-4 w-full"></div>
+                <div class="p-8 md:p-12 relative">
+                    <div id="ticket-stamp" class="stamp">PENDING</div>
+                    <div class="flex justify-between items-center border-b-2 border-dashed pb-6 mb-6"><div><h2 class="text-2xl font-bold text-shaheenRed">SHAHEEN WINGS</h2><p class="text-xs font-bold text-shaheenGreen tracking-widest">ECOSYSTEM</p></div><div class="text-right"><h2 class="text-3xl font-bold text-gray-800">E-TICKET</h2><p class="text-sm text-gray-500" id="ticket-id">#SW-000</p></div></div>
+                    <div class="grid grid-cols-3 gap-8 mb-8">
+                        <div class="col-span-2">
+                            <div class="flex items-center gap-4 mb-6"><img id="ticket-img" src="" class="w-16 h-16 rounded-full border bg-gray-50"><div><h3 class="text-xl font-bold text-gray-900 leading-none" id="ticket-route">Route</h3><p class="text-sm text-gray-600 font-medium mt-1" id="ticket-item-name">Detail</p></div></div>
+                            <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl text-sm mb-4"><div><p class="font-bold text-gray-500 uppercase">Passenger</p><p class="font-bold text-lg" id="ticket-guest">Name</p></div><div><p class="font-bold text-gray-500 uppercase">Passport</p><p class="font-bold text-lg" id="ticket-passport">--</p></div><div><p class="font-bold text-gray-500 uppercase">Phone</p><p class="font-bold text-lg" id="ticket-phone">--</p></div><div><p class="font-bold text-gray-500 uppercase">Total Paid</p><p class="font-bold text-lg text-shaheenRed" id="ticket-price">$0</p></div></div>
+                            <div class="text-xs text-gray-500">Paid via <span id="ticket-bank" class="font-bold">Bank</span> (Trx: <span id="ticket-trx"></span>)</div>
+                        </div>
+                        <div class="col-span-1 flex flex-col items-center justify-center border-l-2 border-dashed pl-6"><div id="qrcode" class="mb-4"></div><p class="text-[10px] text-gray-400 uppercase tracking-widest">Scan to Verify</p></div>
+                    </div>
+                    <div class="bg-gray-900 -mx-12 -mb-12 p-6 flex justify-between items-center text-white text-xs"><p>Support: help@shaheenwings.com</p><p class="font-bold text-shaheenRed">NON-TRANSFERABLE</p></div>
+                </div>
+            </div>
+            <div class="absolute bottom-10 flex gap-4" data-html2canvas-ignore="true">
+                <button onclick="app.downloadPDF()" class="bg-white text-shaheenDark px-6 py-3 rounded-full font-bold shadow-xl hover:scale-105 transition"><i class="fa-solid fa-download mr-2"></i> PDF</button>
+                <button onclick="app.closeTicket()" class="bg-shaheenRed text-white px-6 py-3 rounded-full font-bold shadow-xl hover:scale-105 transition">Close</button>
+            </div>
+        </section>
+
+        <!-- AUTH LOGIN/SIGNUP/FORGOT -->
+        <section id="view-login" class="hidden pt-24 pb-20 px-4 flex justify-center"><div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md animate-slide-up"><h2 class="text-3xl font-bold text-center mb-6">Login</h2><form onsubmit="auth.login(event)" class="space-y-4"><input type="email" id="login-email" placeholder="Email" required class="w-full border rounded-lg p-3"><input type="password" id="login-pass" placeholder="Password" required class="w-full border rounded-lg p-3"><button class="w-full bg-shaheenRed text-white py-3 rounded-lg font-bold">Login</button></form><button onclick="auth.googleLogin()" class="w-full border mt-4 py-3 rounded-lg flex justify-center gap-2"><img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5"> Google</button><p class="text-center mt-4 text-sm">No account? <a href="#" onclick="app.navigate('signup')" class="text-shaheenGreen font-bold">Sign Up</a></p></div></section>
+        <section id="view-signup" class="hidden pt-24 pb-20 px-4 flex justify-center"><div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md animate-slide-up"><h2 class="text-3xl font-bold text-center mb-6">Sign Up</h2><form onsubmit="auth.signup(event)" class="space-y-4"><input type="text" id="reg-name" placeholder="Full Name" required class="w-full border rounded-lg p-3"><input type="email" id="reg-email" placeholder="Email" required class="w-full border rounded-lg p-3"><input type="password" id="reg-pass" placeholder="Password" required class="w-full border rounded-lg p-3"><button class="w-full bg-shaheenGreen text-white py-3 rounded-lg font-bold">Create Account</button></form><p class="text-center mt-4 text-sm">Have account? <a href="#" onclick="app.navigate('login')" class="text-shaheenRed font-bold">Login</a></p></div></section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-shaheenDark text-gray-300 py-16 border-t border-gray-800 relative z-10">
+        <a href="https://wa.me/923001234567" target="_blank" class="fixed bottom-6 right-6 bg-green-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition z-50"><i class="fa-brands fa-whatsapp text-3xl"></i></a>
+        <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 text-sm">
+            <div><h3 class="text-2xl font-bold text-white mb-4">SHAHEEN <span class="text-shaheenRed">WINGS</span></h3><p>Pakistan's #1 Travel Partner.</p></div>
+            <div><h4 class="text-white font-bold mb-4">Links</h4><ul class="space-y-2"><li><a href="#" onclick="app.navigate('home')">Home</a></li><li><a href="#" onclick="app.checkLoginAndNavigate('dashboard')">My Booking History</a></li></ul></div>
+            <div><h4 class="text-white font-bold mb-4">Contact</h4><p>+92-21-111-SHAHEEN</p><p>info@shaheenwings.com</p></div>
+            <div><h4 class="text-white font-bold mb-4">Payment Partners</h4><div class="flex gap-2"><div class="w-8 h-8 bg-meezan rounded-full"></div><div class="w-8 h-8 bg-alfalah rounded-full"></div><div class="w-8 h-8 bg-ubl rounded-full"></div></div></div>
+        </div>
+    </footer>
+
+<!-- FIREBASE & LOGIC -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyC5qcOEyd1Sm9-MjZ3h1A1Wanlpg_YzlrM", authDomain: "shaheen-wings-traveler-d6221.firebaseapp.com", projectId: "shaheen-wings-traveler-d6221", storageBucket: "shaheen-wings-traveler-d6221.firebasestorage.app", messagingSenderId: "160293037540", appId: "1:160293037540:web:13cc968e6417c5097393f1" };
+    const appFB = initializeApp(firebaseConfig);
+    const authFB = getAuth(appFB);
+    const dbFB = getFirestore(appFB);
+
+    // --- SMART FLIGHT GENERATOR (100+ Flights) ---
+    async function seedDatabase() {
+        const snap = await getDocs(collection(dbFB, "flights"));
+        if (!snap.empty) return; 
+        console.log("Seeding 100+ Flights...");
+        const cities = ["Karachi", "Lahore", "Islamabad", "Dubai", "London", "Toronto", "Jeddah", "Istanbul", "New York"];
+        const airlines = [
+            {n:"Shaheen Wings", i:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Airplane_silhouette.svg/1024px-Airplane_silhouette.svg.png"},
+            {n:"Emirates", i:"https://upload.wikimedia.org/wikipedia/commons/d/d0/Emirates_logo.svg"},
+            {n:"PIA", i:"https://upload.wikimedia.org/wikipedia/en/thumb/9/9d/Pakistan_International_Airlines_Logo.svg/1200px-Pakistan_International_Airlines_Logo.svg.png"},
+            {n:"Qatar Airways", i:"https://upload.wikimedia.org/wikipedia/en/thumb/9/9b/Qatar_Airways_Logo.svg/1200px-Qatar_Airways_Logo.svg.png"},
+            {n:"Etihad", i:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Etihad_Airways_logo.svg/1200px-Etihad_Airways_logo.svg.png"}
+        ];
+        
+        for(let i=0; i<120; i++) {
+            const dep = cities[Math.floor(Math.random()*cities.length)];
+            let arr = cities[Math.floor(Math.random()*cities.length)];
+            while(dep === arr) arr = cities[Math.floor(Math.random()*cities.length)];
+            const al = airlines[Math.floor(Math.random()*airlines.length)];
+            
+            await addDoc(collection(dbFB, "flights"), {
+                name: al.n, img: al.i, city: arr, // for simple search
+                dep_city: dep, arr_city: arr,
+                dep: `${Math.floor(Math.random()*23)}:${Math.floor(Math.random()*59)}`,
+                arr: `${Math.floor(Math.random()*23)}:${Math.floor(Math.random()*59)}`,
+                dur: `${Math.floor(Math.random()*10)+2}h 30m`,
+                price: Math.floor(Math.random() * 800) + 150,
+                amenities: ["Meal", "Wifi", "Baggage"]
+            });
+        }
+        // Basic Seed for others
+        await addDoc(collection(dbFB, "hotels"), { name: "Pearl Continental", city: "Karachi", stars: 5, price: 180, img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600" });
+        await addDoc(collection(dbFB, "cars"), { name: "Toyota Corolla", loc: "Lahore", price: 45, img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600" });
+        await addDoc(collection(dbFB, "tours"), { name: "Hunza Valley", dest: "Hunza", price: 450, img: "https://images.unsplash.com/photo-1548013146-72479768bada?w=600" });
+    }
+
+    // APP CONTROLLER
+    window.app = {
+        state: { currentSelection: null, currentRoute: "", tempGuestData: {} },
+
+        init: () => {
+            seedDatabase();
+            const locs = ["Karachi", "Lahore", "Islamabad", "Dubai", "London", "New York", "Toronto", "Jeddah", "Istanbul"];
+            const setupAC = (inpId, listId) => {
+                const inp = document.getElementById(inpId);
+                const list = document.getElementById(listId);
+                if(!inp) return;
+                inp.addEventListener("input", function() {
+                    list.innerHTML = '';
+                    const val = this.value.toLowerCase();
+                    if (!val) { list.classList.add("hidden"); return; }
+                    list.classList.remove("hidden");
+                    locs.filter(l => l.toLowerCase().includes(val)).forEach(l => {
+                        const d = document.createElement("div"); d.innerText = l;
+                        d.onclick = () => { inp.value = l; list.classList.add("hidden"); };
+                        list.appendChild(d);
+                    });
+                });
+            };
+            setupAC("input-origin", "autocomplete-origin");
+            setupAC("input-dest", "autocomplete-dest");
+        },
+
+        navigate: (viewId) => {
+            document.querySelectorAll("section[id^='view-']").forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`view-${viewId}`);
+            if (target) { target.classList.remove('hidden'); target.classList.add('animate-fade-in'); window.scrollTo(0,0); }
+        },
+
+        checkLoginAndNavigate: (target) => {
+            if(authFB.currentUser) {
+                if(target === 'dashboard') app.loadDashboard();
+                else app.navigate(target);
+            } else { alert("Please log in first."); app.navigate('login'); }
+        },
+
+        switchTab: (tab) => {
+            ['flights', 'hotels', 'cars', 'tours'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const form = document.getElementById(`form-${t}`);
+                if (btn && form) {
+                    if (t === tab) { btn.classList.replace('tab-inactive', 'tab-active'); form.classList.remove('hidden'); }
+                    else { btn.classList.replace('tab-active', 'tab-inactive'); form.classList.add('hidden'); }
+                }
+            });
+        },
+
+        searchFlights: async (e) => {
+            e.preventDefault();
+            app.navigate('results');
+            const origin = document.getElementById('input-origin').value || "Karachi";
+            const dest = document.getElementById('input-dest').value || "Dubai";
+            app.state.currentRoute = `${origin} to ${dest}`;
+            document.getElementById('res-origin').innerText = origin;
+            document.getElementById('res-dest').innerText = dest;
+            
+            const container = document.getElementById('results-container');
+            container.innerHTML = `<div class="text-center py-20 text-shaheenRed"><i class="fa-solid fa-circle-notch fa-spin text-4xl"></i></div>`;
+            
+            try {
+                // Query Flights matching route OR default to all
+                const snap = await getDocs(collection(dbFB, "flights"));
+                let html = '';
+                let count = 0;
+                snap.forEach(doc => {
+                    const f = doc.data();
+                    // Simple client-side filter logic since seeding is random
+                    if((f.dep_city && f.dep_city.includes(origin) && f.arr_city && f.arr_city.includes(dest)) || (!f.dep_city)) {
+                        count++;
+                        html += `<div class="bg-white rounded-xl shadow p-5 mb-4 hover:shadow-lg transition border-l-4 border-shaheenGreen animate-slide-up flex flex-col md:flex-row items-center gap-4"><div class="w-full md:w-1/4 flex items-center"><img src="${f.img}" class="w-12 h-12 object-contain mr-3"><div><h4 class="font-bold">${f.name}</h4><span class="text-xs bg-gray-100 px-2 py-0.5 rounded">Economy</span></div></div><div class="flex-1 text-center px-4"><div class="flex justify-between text-lg font-bold"><span>${f.dep}</span><span>${f.arr}</span></div><div class="w-full h-1 bg-gray-200 rounded my-2 relative"><div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-shaheenGreen rounded-full"></div></div><div class="flex justify-between text-xs text-gray-500"><span>${origin}</span><span>${dest}</span></div></div><div class="w-full md:w-1/4 text-center border-l pl-4"><p class="text-3xl font-bold text-shaheenRed">$${f.price}</p><button onclick='app.viewDetails(${JSON.stringify(f)})' class="w-full mt-2 bg-shaheenDark text-white py-2 rounded font-bold hover:bg-green-700">Select</button></div></div>`;
+                    }
+                });
+                document.getElementById('res-count').innerText = `Found ${count} Flights`;
+                container.innerHTML = html || "<p class='text-center p-10'>No flights found. Try Karachi to Dubai.</p>";
+            } catch(e) { container.innerHTML = `<p class='text-center p-10 text-red-500'>Error loading data.</p>`; }
+        },
+
+        viewDetails: (item) => {
+            app.state.currentSelection = item;
+            const container = document.getElementById('details-content');
+            container.innerHTML = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><div class="h-[400px] rounded-2xl overflow-hidden shadow-lg"><img src="${item.img}" class="w-full h-full object-cover"></div><div class="flex flex-col justify-center"><h1 class="text-4xl font-bold text-gray-900 mb-2">${item.name}</h1><p class="text-lg text-gray-500 mb-6"><i class="fa-solid fa-location-dot text-shaheenRed"></i> ${app.state.currentRoute || item.city}</p><div class="bg-white p-6 rounded-xl shadow border flex justify-between items-center"><div><p class="text-sm text-gray-500">Total Price</p><p class="text-3xl font-bold text-shaheenRed">$${item.price}</p></div><button onclick="app.openBooking()" class="bg-gradient-to-r from-shaheenRed to-shaheenGreen text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:-translate-y-1 transition">Book Now</button></div></div></div>`;
+            app.navigate('details');
+        },
+
+        openBooking: () => {
+            if(!app.state.currentSelection) return;
+            if(!authFB.currentUser) { alert("Please login to book."); app.navigate('login'); return; }
+            document.getElementById('booking-item-title').innerText = app.state.currentSelection.name;
+            document.getElementById('booking-item-price').innerText = "$" + app.state.currentSelection.price;
+            app.navigate('booking-form');
+        },
+
+        backToDetails: () => app.navigate('details'),
+
+        goToPayment: (e) => {
+            e.preventDefault();
+            app.state.tempGuestData = {
+                name: document.getElementById('guest-name').value,
+                email: document.getElementById('guest-email').value,
+                phone: document.getElementById('guest-phone').value,
+                passport: document.getElementById('guest-id').value
+            };
+            document.getElementById('pay-amount').innerText = "$" + app.state.currentSelection.price;
+            app.navigate('payment');
+        },
+
+        updateAdminBank: (bank, acc) => {
+            document.getElementById('admin-bank-label').innerText = bank;
+            document.getElementById('admin-acc-num').innerText = acc;
+        },
+
+        processPayment: async () => {
+            const sender = document.getElementById('sender-name').value;
+            const trx = document.getElementById('trx-id').value;
+            if(!sender || !trx) { alert("Please enter payment details"); return; }
+            
+            // Show Success Animation
+            document.getElementById('view-payment').classList.add('hidden');
+            const successView = document.getElementById('view-success');
+            successView.classList.remove('hidden');
+            document.getElementById('success-bar').style.width = "100%";
+
+            try {
+                // Save to DB
+                await addDoc(collection(dbFB, "bookings"), {
+                    item: app.state.currentSelection,
+                    guest: app.state.tempGuestData,
+                    route: app.state.currentRoute,
+                    payment: { bank: document.querySelector('input[name="bank"]:checked').value, sender, trx },
+                    date: new Date().toISOString(),
+                    email: authFB.currentUser.email,
+                    status: "Pending"
+                });
+                
+                // Redirect after 2s
+                setTimeout(() => {
+                    successView.classList.add('hidden');
+                    app.loadDashboard();
+                }, 2000);
+            } catch(e) { alert("Error: " + e.message); successView.classList.add('hidden'); app.navigate('payment'); }
+        },
+
+        loadDashboard: async () => {
+            app.navigate('dashboard');
+            const list = document.getElementById('dashboard-list');
+            const empty = document.getElementById('dashboard-empty');
+            list.innerHTML = '<tr><td colspan="5" class="p-6 text-center">Loading...</td></tr>';
+            empty.classList.add('hidden');
+            
+            const q = query(collection(dbFB, "bookings"), where("email", "==", authFB.currentUser.email));
+            const snap = await getDocs(q);
+            
+            if(snap.empty) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+            
+            let html = '';
+            snap.forEach(doc => {
+                const b = doc.data();
+                const statusClass = b.status === 'Approved' ? 'status-badge-Approved' : (b.status === 'Cancelled' ? 'status-badge-Cancelled' : 'status-badge-Pending');
+                const dataStr = encodeURIComponent(JSON.stringify(b));
+                html += `<tr class="hover:bg-gray-50 border-b"><td class="p-6 font-medium">${b.item.name}</td><td class="p-6 text-gray-500">${b.route || b.item.city}</td><td class="p-6">${new Date(b.date).toLocaleDateString()}</td><td class="p-6"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">${b.status}</span></td><td class="p-6 text-right"><button onclick="app.showHistoryDetail('${dataStr}')" class="text-shaheenRed hover:underline font-bold">View Ticket</button></td></tr>`;
+            });
+            list.innerHTML = html;
+        },
+
+        showHistoryDetail: (str) => {
+            const b = JSON.parse(decodeURIComponent(str));
+            app.state.currentSelection = b.item;
+            app.state.currentRoute = b.route;
+            app.state.tempGuestData = b.guest;
+            
+            // Populate Ticket
+            document.getElementById('ticket-item-name').innerText = b.item.name;
+            document.getElementById('ticket-route').innerText = b.route;
+            document.getElementById('ticket-guest').innerText = b.guest.name;
+            document.getElementById('ticket-passport').innerText = b.guest.passport;
+            document.getElementById('ticket-phone').innerText = b.guest.phone;
+            document.getElementById('ticket-price').innerText = "$" + b.item.price;
+            document.getElementById('ticket-bank').innerText = b.payment.bank;
+            document.getElementById('ticket-trx').innerText = b.payment.trx;
+            document.getElementById('ticket-id').innerText = "#SW-" + Math.floor(Math.random()*10000);
+            document.getElementById('ticket-date').innerText = new Date(b.date).toLocaleDateString();
+            document.getElementById('ticket-img').src = b.item.img;
+            
+            const stamp = document.getElementById('ticket-stamp');
+            stamp.innerText = b.status;
+            stamp.className = `stamp stamp-${b.status}`;
+            
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById('qrcode'), { text: b.payment.trx, width: 64, height: 64 });
+            
+            document.getElementById('view-ticket').classList.remove('hidden');
+            document.getElementById('view-ticket').classList.add('flex');
+        },
+
+        downloadPDF: () => html2pdf().set({ margin: 10, filename: 'Ticket.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } }).from(document.getElementById('ticket-node')).save(),
+        closeTicket: () => { document.getElementById('view-ticket').classList.add('hidden'); document.getElementById('view-ticket').classList.remove('flex'); },
+        
+        toggleTrip: (type) => { app.state.tripType = type; document.getElementById('one-way-overlay').classList.toggle('hidden', type !== 'one'); document.getElementById('return-date-input').disabled = (type === 'one'); },
+        swapLocations: () => { const o = document.getElementById("input-origin"), d = document.getElementById("input-dest"); [o.value, d.value] = [d.value, o.value]; }
+    };
+
+    // AUTH CONTROLLER
+    window.auth = {
+        login: async (e) => { e.preventDefault(); try { await signInWithEmailAndPassword(authFB, document.getElementById('login-email').value, document.getElementById('login-pass').value); app.navigate('home'); } catch(e) { alert(e.message); } },
+        signup: async (e) => { e.preventDefault(); try { const r = await createUserWithEmailAndPassword(authFB, document.getElementById('reg-email').value, document.getElementById('reg-pass').value); await updateProfile(r.user, { displayName: document.getElementById('reg-name').value }); app.navigate('home'); } catch(e) { alert(e.message); } },
+        googleLogin: async () => { try { await signInWithPopup(authFB, new GoogleAuthProvider()); app.navigate('home'); } catch(e) { alert(e.message); } },
+        logout: async () => { await signOut(authFB); app.navigate('home'); }
+    };
+
+    onAuthStateChanged(authFB, (user) => {
+        const c = document.getElementById('auth-container');
+        if(user) c.innerHTML = `<div class="flex items-center gap-3"><button onclick="app.loadDashboard()" class="text-sm font-bold hover:text-shaheenRed">My Bookings</button><div class="text-right hidden md:block"><p class="text-xs text-gray-500">Hi,</p><p class="text-sm font-bold">${user.displayName||user.email}</p></div><button onclick="auth.logout()" class="text-gray-500 hover:text-red-600"><i class="fa-solid fa-right-from-bracket"></i></button></div>`;
+        else c.innerHTML = `<div class="hidden lg:flex gap-3"><button onclick="app.navigate('login')" class="text-sm font-bold hover:text-shaheenRed">Log In</button><button onclick="app.navigate('signup')" class="bg-gradient-to-r from-shaheenRed to-shaheenGreen text-white px-5 py-2 rounded-full font-bold shadow-lg hover:shadow-xl transition">Sign Up</button></div>`;
+    });
+
+    document.addEventListener('DOMContentLoaded', app.init);
+</script>
+</body>
+</html>
